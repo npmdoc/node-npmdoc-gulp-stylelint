@@ -1,0 +1,371 @@
+<html><head></head><body><div class="apidocDiv">
+<style>
+/*csslint
+*/
+.apidocDiv {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.apidocDiv a[href] {
+    color: #33f;
+    font-weight: bold;
+    text-decoration: none;
+}
+.apidocDiv a[href]:hover {
+    text-decoration: underline;
+}
+.apidocCodeCommentSpan {
+    background: #bbf;
+    color: #000;
+    display: block;
+}
+.apidocCodeKeywordSpan {
+    color: #d00;
+    font-weight: bold;
+}
+.apidocCodePre {
+    background: #eef;
+    border: 1px solid;
+    color: #777;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+.apidocFooterDiv {
+    margin-top: 20px;
+    text-align: center;
+}
+.apidocModuleLi {
+    margin-top: 10px;
+}
+.apidocSectionDiv {
+    border-top: 1px solid;
+    margin-top: 20px;
+}
+.apidocSignatureSpan {
+    color: #777;
+    font-weight: bold;
+}
+</style>
+<h1>api documentation for
+    <a href="https://github.com/olegskl/gulp-stylelint">gulp-stylelint (v3.9.0)</a>
+</h1>
+<h4>Gulp plugin for running Stylelint results through various reporters.</h4>
+<div class="apidocSectionDiv"><a href="#apidoc.tableOfContents" id="apidoc.tableOfContents"><h1>table of contents</h1></a><ol>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.gulp-stylelint">module gulp-stylelint</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.gulp-stylelint.gulp-stylelint">
+            function <span class="apidocSignatureSpan"></span>gulp-stylelint
+            <span class="apidocSignatureSpan">(options)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <span class="apidocSignatureSpan">object <span class="apidocSignatureSpan">gulp-stylelint.</span>formatters</span>
+
+        </li>
+
+    </ol></li>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.gulp-stylelint.formatters">module gulp-stylelint.formatters</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.gulp-stylelint.formatters.json">
+            function <span class="apidocSignatureSpan">gulp-stylelint.formatters.</span>json
+            <span class="apidocSignatureSpan">(results)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.gulp-stylelint.formatters.string">
+            function <span class="apidocSignatureSpan">gulp-stylelint.formatters.</span>string
+            <span class="apidocSignatureSpan">(results)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.gulp-stylelint.formatters.verbose">
+            function <span class="apidocSignatureSpan">gulp-stylelint.formatters.</span>verbose
+            <span class="apidocSignatureSpan">(results)</span>
+            </a>
+
+        </li>
+
+    </ol></li>
+
+</ol></div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.gulp-stylelint" id="apidoc.module.gulp-stylelint">module gulp-stylelint</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.gulp-stylelint.gulp-stylelint" id="apidoc.element.gulp-stylelint.gulp-stylelint">
+        function <span class="apidocSignatureSpan"></span>gulp-stylelint
+        <span class="apidocSignatureSpan">(options)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function gulpStylelint(options) {
+
+<span class="apidocCodeCommentSpan">  /**
+   * Plugin options with defaults applied.
+   * @type Object
+   */
+</span>  var pluginOptions = (0, _deepExtend2.default)({
+    failAfterError: true,
+    debug: false
+  }, options);
+
+  /**
+   * Lint options for stylelint's `lint` function.
+   * @type Object
+   */
+  var lintOptions = (0, _deepExtend2.default)({}, options);
+
+  /**
+   * List of gulp-stylelint reporters.
+   * @type [Function]
+   */
+  var reporters = (pluginOptions.reporters || []).map(function (config) {
+    return (0, _reporterFactory2.default)(config, pluginOptions);
+  });
+
+  /**
+   * List of stylelint's lint result promises.
+   * @type [Promise]
+   */
+  var lintPromiseList = [];
+
+  // Remove the stylelint options that cannot be used:
+  delete lintOptions.files; // css code will be provided by gulp instead
+  delete lintOptions.formatter; // formatters are defined in the `reporters` option
+
+  // Remove gulp-stylelint options so that they don't interfere with stylelint options:
+  delete lintOptions.reportOutputDir;
+  delete lintOptions.reporters;
+  delete lintOptions.debug;
+
+  /**
+   * Launches linting of a given file, pushes promises to the promise list.
+   *
+   * Note that the files are not modified and are pushed
+   * back to their pipes to allow usage of other plugins.
+   *
+   * @param {File} file - Piped file.
+   * @param {String} encoding - File encoding.
+   * @param {Function} done - File pipe completion callback.
+   * @return {undefined} Nothing is returned (done callback is used instead).
+   */
+  function onFile(file, encoding, done) {
+
+    if (file.isNull()) {
+      done(null, file);
+      return;
+    }
+
+    if (file.isStream()) {
+      this.emit('error', new _gulpUtil.PluginError(pluginName, 'Streaming is not supported'));
+      done();
+      return;
+    }
+
+    var localLintOptions = (0, _deepExtend2.default)({}, lintOptions, {
+      code: file.contents.toString(),
+      codeFilename: file.path
+    });
+
+    lintPromiseList.push((0, _stylelint.lint)(localLintOptions));
+
+    done(null, file);
+  }
+
+  /**
+   * Provides Stylelint result to reporters.
+   * @param {[Object]} lintResults - Stylelint results.
+   * @return {Promise} Resolved with original lint results.
+   */
+  function passLintResultsThroughReporters(lintResults) {
+    var warnings = lintResults.reduce(function (accumulated, res) {
+      return accumulated.concat(res.results);
+    }, []);
+    return _promise2.default.all(reporters.map(function (reporter) {
+      return reporter(warnings);
+    })).then(function () {
+      return lintResults;
+    });
+  }
+
+  /**
+   * Determines if the severity of a stylelint warning is "error".
+   * @param {Object} warning - Stylelint results warning.
+   * @return {Boolean} True if warning's severity is "error", false otherwise.
+   */
+  function isErrorSeverity(warning) {
+    return warning.severity === 'error';
+  }
+
+  /**
+   * Resolves promises and provides accumulated report to reporters.
+   * @param {Function} done - Stream completion callback.
+   * @return {undefined} Nothing is returned (done callback is used instead).
+   */
+  function onStreamEnd(done) {
+    var _this = this;
+
+    _promise2.default.all(lintPromiseList).then(passLintResultsThroughReporters).then(function (lintResults) {
+      process.nextTick(function () {
+        var errorCount = lintResults.reduce(function (sum, res) {
+          var errors = res.results[0].warnings.filter(isErrorSeverity);
+          return sum + errors.length;
+        }, 0);
+        if (pluginOptions.failAfterError &amp;&amp; errorCount &gt; 0) {
+          var errorMessage = 'Failed with ' + errorCount + ' ' + (errorCount === 1 ? 'error' : 'errors');
+          _this.emit('error', new _gulpUtil.PluginError(pluginName, errorMessage));
+        }
+        done();
+      });
+    }).catch(function (error) {
+      process.nextTick(function () {
+        _this.emit('error', new _gulpUtil.PluginError(pluginName, error, {
+          showStack: Boolean(pluginOptions.debug)
+        }));
+        done();
+      });
+    });
+  }
+
+  return _through2.default.obj(onFile, onStreamEnd);
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+
+
+</div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.gulp-stylelint.formatters" id="apidoc.module.gulp-stylelint.formatters">module gulp-stylelint.formatters</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.gulp-stylelint.formatters.json" id="apidoc.element.gulp-stylelint.formatters.json">
+        function <span class="apidocSignatureSpan">gulp-stylelint.formatters.</span>json
+        <span class="apidocSignatureSpan">(results)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">json = function (results) {
+  const cleanedResults = results.map(result =&gt; {
+    return _.omitBy(result, (value, key) =&gt; key[0] === "_")
+  })
+  return JSON.stringify(cleanedResults)
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+
+    <h2>
+        <a href="#apidoc.element.gulp-stylelint.formatters.string" id="apidoc.element.gulp-stylelint.formatters.string">
+        function <span class="apidocSignatureSpan">gulp-stylelint.formatters.</span>string
+        <span class="apidocSignatureSpan">(results)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">string = function (results) {
+  let output = invalidOptionsFormatter(results)
+  output += deprecationsFormatter(results)
+
+  output = results.reduce((output, result) =&gt; {
+    output += formatter(result.warnings, result.source)
+    return output
+  }, output)
+
+  // Ensure consistent padding
+  output = output.trim()
+
+  if (output !== "") {
+    output = "\n" + output + "\n\n"
+  }
+
+  return output
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+
+    <h2>
+        <a href="#apidoc.element.gulp-stylelint.formatters.verbose" id="apidoc.element.gulp-stylelint.formatters.verbose">
+        function <span class="apidocSignatureSpan">gulp-stylelint.formatters.</span>verbose
+        <span class="apidocSignatureSpan">(results)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">verbose = function (results) {
+  let output = stringFormatter(results)
+
+  if (output === "") {
+    output = "\n"
+  }
+
+  const sourceWord = results.length &gt; 1 ? "sources" : "source"
+  const ignoredCount = results.filter(result =&gt; result.ignored).length
+  const checkedDisplay = ignoredCount ? `${results.length - ignoredCount} of ${results.length}` : results.length
+  output += chalk.underline(`${checkedDisplay} ${sourceWord} checked\n`)
+  results.forEach(result =&gt; {
+    let formatting = "green"
+    if (result.errored) {
+      formatting = "red"
+    } else if (result.warnings.length) {
+      formatting = "yellow"
+    } else if (result.ignored) {
+      formatting = "dim"
+    }
+    let sourceText = `${result.source}`
+    if (result.ignored) {
+      sourceText += " (ignored)"
+    }
+    output += _.get(chalk, formatting)(` ${sourceText}\n`)
+  })
+
+  const warnings = _.flatten(results.map(r =&gt; r.warnings))
+  const warningsBySeverity = _.groupBy(warnings, "severity")
+  const problemWord = warnings.length === 1 ? "problem" : "problems"
+
+  output += chalk.underline(`\n${warnings.length} ${problemWord} found\n`)
+
+  _.forOwn(warningsBySeverity, (warningList, severityLevel) =&gt; {
+    const warningsByRule = _.groupBy(warningList, "rule")
+    output += ` severity level "${severityLevel}": ${warningList.length}\n`
+    _.forOwn(warningsByRule, (list, rule) =&gt; {
+      output += chalk.dim(`  ${rule}: ${list.length}\n`)
+    })
+  })
+
+  return output + "\n"
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+</div>
+
+<div class="apidocFooterDiv">
+    [ this document was created with
+    <a href="https://github.com/kaizhu256/node-utility2" target="_blank">utility2</a>
+    ]
+</div>
+</div>
+</body></html>
