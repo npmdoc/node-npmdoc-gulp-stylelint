@@ -1,6 +1,6 @@
 # npmdoc-gulp-stylelint
 
-#### api documentation for  [gulp-stylelint (v3.9.0)](https://github.com/olegskl/gulp-stylelint)  [![npm package](https://img.shields.io/npm/v/npmdoc-gulp-stylelint.svg?style=flat-square)](https://www.npmjs.org/package/npmdoc-gulp-stylelint) [![travis-ci.org build-status](https://api.travis-ci.org/npmdoc/node-npmdoc-gulp-stylelint.svg)](https://travis-ci.org/npmdoc/node-npmdoc-gulp-stylelint)
+#### basic api documentation for  [gulp-stylelint (v3.9.0)](https://github.com/olegskl/gulp-stylelint)  [![npm package](https://img.shields.io/npm/v/npmdoc-gulp-stylelint.svg?style=flat-square)](https://www.npmjs.org/package/npmdoc-gulp-stylelint) [![travis-ci.org build-status](https://api.travis-ci.org/npmdoc/node-npmdoc-gulp-stylelint.svg)](https://travis-ci.org/npmdoc/node-npmdoc-gulp-stylelint)
 
 #### Gulp plugin for running Stylelint results through various reporters.
 
@@ -81,7 +81,8 @@
         "test": "tape -r babel-register test/*.spec.js",
         "transpile": "babel src --out-dir dist"
     },
-    "version": "3.9.0"
+    "version": "3.9.0",
+    "bin": {}
 }
 ```
 
